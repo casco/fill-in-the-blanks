@@ -3,6 +3,7 @@ import axios from 'axios';
 
 function App() {
   const [template, setTemplate] = useState({});
+  const [selectedOptions, setSelectedOptions] = useState({});
 
   useEffect(() => {
     axios.get('http://localhost:8080/template')
@@ -14,6 +15,20 @@ function App() {
       });
   }, []); // empty dependency array
 
+  const handleOptionChange = (variable, value) => {
+    setSelectedOptions({ ...selectedOptions, [variable]: value });
+  };
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    axios.post('http://localhost:8080/response', selectedOptions)
+      .then(response => {
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
 
   function Sentence({ sentence, choices }) {
     if (!sentence) return null;
@@ -26,7 +41,7 @@ function App() {
       ));
   
       return (
-        <select key={variable}>
+        <select key={variable} onChange={(event) => handleOptionChange(variable, event.target.value)}>
           {dropdownOptions}
         </select>
       );
@@ -47,7 +62,10 @@ function App() {
   
   return (
     <div className="App">
-      <Sentence sentence={template.sentence} choices={template.choices} />
+      <form onSubmit={handleFormSubmit}>
+        <Sentence sentence={template.sentence} choices={template.choices} />
+        <button type="submit">Submit</button>
+      </form>
     </div>
   );
 
