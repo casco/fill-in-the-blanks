@@ -3,7 +3,7 @@ import axios from 'axios';
 
 function App() {
   const [template, setTemplate] = useState({});
-  const [selectedOptions, setSelectedOptions] = useState({});
+  const [responses, setResponses] = useState([]);
 
   useEffect(() => {
     axios.get('http://localhost:8080/template')
@@ -15,13 +15,16 @@ function App() {
       });
   }, []); // empty dependency array
 
-  const handleOptionChange = (variable, value) => {
-    setSelectedOptions({ ...selectedOptions, [variable]: value });
+  const addResponse = () => {
+    setResponses(responses => [...responses, template.choices]);
   };
 
-  const handleFormSubmit = (event) => {
-    event.preventDefault();
-    axios.post('http://localhost:8080/response', selectedOptions)
+  const removeResponse = (index) => {
+    setResponses(responses => responses.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = () => {
+    axios.post('http://localhost:8080/response', responses)
       .then(response => {
         console.log(response);
       })
@@ -30,10 +33,15 @@ function App() {
       });
   };
 
-  function Sentence({ sentence, choices }) {
+  function Sentence({ sentence, choices, onChange }) {
     if (!sentence) return null;
   
     const dropdowns = Object.entries(choices).map(([variable, options]) => {
+      const handleChange = (event) => {
+        const selectedOption = event.target.value;
+        onChange(variable, selectedOption);
+      };
+  
       const dropdownOptions = options.map((option) => (
         <option key={option} value={option}>
           {option}
@@ -41,7 +49,7 @@ function App() {
       ));
   
       return (
-        <select key={variable} onChange={(event) => handleOptionChange(variable, event.target.value)}>
+        <select key={variable} onChange={handleChange}>
           {dropdownOptions}
         </select>
       );
@@ -62,13 +70,22 @@ function App() {
   
   return (
     <div className="App">
-      <form onSubmit={handleFormSubmit}>
-        <Sentence sentence={template.sentence} choices={template.choices} />
-        <button type="submit">Submit</button>
-      </form>
+      <button onClick={addResponse}>Add Response</button>
+      {responses.map((response, index) => (
+        <div key={index}>
+          <Sentence sentence={template.sentence} choices={response} onChange={(variable, option) => {
+            setResponses(responses => {
+              const newResponses = [...responses];
+              newResponses[index][variable] = [option];
+              return newResponses;
+            });
+          }} />
+          <button onClick={() => removeResponse(index)}>Remove Response</button>
+        </div>
+      ))}
+      {responses.length > 0 && <button onClick={handleSubmit}>Submit</button>}
     </div>
   );
-
 }
 
 export default App;
