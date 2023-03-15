@@ -15,12 +15,12 @@ function App() {
   }, []); // empty dependency array
 
   // Replace variables in the template sentence with dropdown menus
-  const replaceVariables = (sentence) => {
+  const replaceVariables = () => {
     const pattern = /\$(\w+)/g;
-    let newSentence = sentence;
+    let newSentence = template.sentence;
     let match;
 
-    while ((match = pattern.exec(sentence)) !== null) {
+    while ((match = pattern.exec(template.sentence)) !== null) {
       const [variable, name] = match;
       const options = template.choices[name];
       const dropdown = (
@@ -34,7 +34,6 @@ function App() {
       );
       newSentence = newSentence.replace(variable, dropdown);
     }
-    console.log(sentence);
     return newSentence;
   };
 
@@ -42,7 +41,7 @@ function App() {
     <div>
       <h1>Fill in the blanks</h1>
       {template && (
-        <p>{replaceVariables(template.sentence)}</p>
+        <p>{replaceVariables()}</p>
       )}
       {/* Add your submit button here */}
     </div>
