@@ -33,23 +33,35 @@ function App() {
       });
   };
 
-  function Sentence({ sentence, choices, onChange }) {
-    if (!sentence) return null;
+  function Sentence({ sentence, choices }) {
+    const [dropdownStates, setDropdownStates] = useState(
+      Object.entries(choices).map(([variable, options]) => ({
+        variable,
+        value: options[0],
+      }))
+    );
   
-    const dropdowns = Object.entries(choices).map(([variable, options]) => {
-      const handleChange = (event) => {
-        const selectedOption = event.target.value;
-        onChange(variable, selectedOption);
-      };
+    const handleDropdownChange = (variable, newValue) => {
+      setDropdownStates((prevStates) =>
+        prevStates.map((state) =>
+          state.variable === variable ? { ...state, value: newValue } : state
+        )
+      );
+    };
   
-      const dropdownOptions = options.map((option) => (
+    const dropdowns = dropdownStates.map(({ variable, value }) => {
+      const dropdownOptions = choices[variable].map((option) => (
         <option key={option} value={option}>
           {option}
         </option>
       ));
   
       return (
-        <select key={variable} onChange={handleChange}>
+        <select
+          key={variable}
+          value={value}
+          onChange={(e) => handleDropdownChange(variable, e.target.value)}
+        >
           {dropdownOptions}
         </select>
       );
@@ -67,6 +79,7 @@ function App() {
   
     return <>{renderedSentence}</>;
   }
+  
   
   return (
     <div className="App">
