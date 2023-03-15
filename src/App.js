@@ -9,64 +9,70 @@ function App() {
     axios.get('http://localhost:8080/template')
       .then(response => {
         setTemplate(response.data);
+        setResponses([createResponse(response.data.choices)]);
       })
       .catch(error => {
         console.log(error);
       });
   }, []); // empty dependency array
 
+  const createResponse = (choices) => {
+    const response = {};
+    for (const [variable, options] of Object.entries(choices)) {
+      response[variable] = options[0];
+    }
+    return response;
+  };
+
   const addResponse = () => {
-    setResponses(responses => [...responses, template.choices]);
+    setResponses([...responses, createResponse(template.choices)]);
   };
 
   const removeResponse = (index) => {
-    setResponses(responses => responses.filter((_, i) => i !== index));
+    setResponses(responses.filter((_, i) => i !== index));
+  };
+
+  const handleSelect = (index, variable, value) => {
+    setResponses(responses.map((response, i) => {
+      if (i === index) {
+        return { ...response, [variable]: value };
+      }
+      return response;
+    }));
   };
 
   const handleSubmit = () => {
     axios.post('http://localhost:8080/response', responses)
       .then(response => {
         console.log(response);
+        setResponses([]);
       })
       .catch(error => {
         console.log(error);
       });
   };
 
-  function Sentence({ sentence, choices }) {
-    const [dropdownStates, setDropdownStates] = useState(
-      Object.entries(choices).map(([variable, options]) => ({
-        variable,
-        value: options[0],
-      }))
-    );
-  
-    const handleDropdownChange = (variable, newValue) => {
-      setDropdownStates((prevStates) =>
-        prevStates.map((state) =>
-          state.variable === variable ? { ...state, value: newValue } : state
-        )
-      );
-    };
-  
-    const dropdowns = dropdownStates.map(({ variable, value }) => {
-      const dropdownOptions = choices[variable].map((option) => (
+  function Sentence({ sentence, choices, index }) {
+    if (!sentence) return null;
+
+    const dropdowns = Object.entries(choices).map(([variable, options]) => {
+      const dropdownOptions = options.map((option) => (
         <option key={option} value={option}>
           {option}
         </option>
       ));
-  
+
       return (
         <select
           key={variable}
-          value={value}
-          onChange={(e) => handleDropdownChange(variable, e.target.value)}
+          value={responses[index][variable]}
+          onChange={(e) => handleSelect(index, variable, e.target.value)}
         >
           {dropdownOptions}
         </select>
       );
     });
-  
+
     const sentenceParts = sentence.split(/\$(\w+)/g);
     const renderedSentence = sentenceParts.map((part, index) => {
       if (index % 2 === 1) {
@@ -76,27 +82,28 @@ function App() {
       }
       return part;
     });
-  
-    return <>{renderedSentence}</>;
+
+    return (
+      <div>
+        <button onClick={() => removeResponse(index)}>Remove</button>
+        {renderedSentence}
+      </div>
+    );
   }
-  
-  
+
   return (
     <div className="App">
-      <button onClick={addResponse}>Add Response</button>
       {responses.map((response, index) => (
-        <div key={index}>
-          <Sentence sentence={template.sentence} choices={response} onChange={(variable, option) => {
-            setResponses(responses => {
-              const newResponses = [...responses];
-              newResponses[index][variable] = [option];
-              return newResponses;
-            });
-          }} />
-          <button onClick={() => removeResponse(index)}>Remove Response</button>
-        </div>
+        <Sentence
+          key={index}
+          sentence={template.sentence}
+          choices={template.choices}
+          index={index}
+        />
       ))}
-      {responses.length > 0 && <button onClick={handleSubmit}>Submit</button>}
+      <button onClick={addResponse}>Add Response</button>
+      <br />
+      <button onClick={handleSubmit}>Submit</button>
     </div>
   );
 }
