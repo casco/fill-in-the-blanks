@@ -14,38 +14,43 @@ function App() {
       });
   }, []); // empty dependency array
 
-  // Replace variables in the template sentence with dropdown menus
-  const replaceVariables = () => {
-    const pattern = /\$(\w+)/g;
-    let newSentence = template.sentence;
-    let match;
 
-    while ((match = pattern.exec(template.sentence)) !== null) {
-      const [variable, name] = match;
-      const options = template.choices[name];
-      const dropdown = (
+  function Sentence({ sentence, choices }) {
+    if (!sentence) return null;
+  
+    const dropdowns = Object.entries(choices).map(([variable, options]) => {
+      const dropdownOptions = options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ));
+  
+      return (
         <select key={variable}>
-          {options.map(option => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+          {dropdownOptions}
         </select>
       );
-      newSentence = newSentence.replace(variable, dropdown);
-    }
-    return newSentence;
-  };
-
+    });
+  
+    const sentenceParts = sentence.split(/\$(\w+)/g);
+    const renderedSentence = sentenceParts.map((part, index) => {
+      if (index % 2 === 1) {
+        const variable = part;
+        const dropdown = dropdowns.find((d) => d.key === variable);
+        return dropdown || part;
+      }
+      return part;
+    });
+  
+    return <>{renderedSentence}</>;
+  }
+  
   return (
-    <div>
-      <h1>Fill in the blanks</h1>
-      {template && (
-        <p>{replaceVariables()}</p>
-      )}
-      {/* Add your submit button here */}
+    <div className="App">
+      <Sentence sentence={template.sentence} choices={template.choices} />
     </div>
   );
+
 }
 
 export default App;
