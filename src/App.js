@@ -20,7 +20,7 @@ function App() {
   const createResponse = (choices) => {
     const response = {};
     for (const [variable, options] of Object.entries(choices)) {
-      response[variable] = options[0];
+      response[variable] = '';
     }
     return response;
   };
@@ -53,6 +53,12 @@ function App() {
       });
   };
 
+  const isSubmitDisabled = () => {
+    return responses.some((response) => {
+      return Object.values(response).some((value) => value === '');
+    });
+  };
+
   function Sentence({ sentence, choices, index }) {
     if (!sentence) return null;
 
@@ -69,6 +75,7 @@ function App() {
           value={responses[index][variable]}
           onChange={(e) => handleSelect(index, variable, e.target.value)}
         >
+          <MenuItem value=''></MenuItem>
           {dropdownOptions}
         </Select>
       );
@@ -104,7 +111,9 @@ function App() {
       ))}
       <Button variant="contained" onClick={addResponse}>Add Response</Button>
       <br />
-      <Button variant="contained" onClick={handleSubmit}>Submit</Button>
+      <Button variant="contained" onClick={handleSubmit} disabled={isSubmitDisabled()}>
+        Submit
+      </Button>
     </div>
   );
 }
