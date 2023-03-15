@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { Button, Select, MenuItem } from '@mui/material';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function App() {
@@ -57,19 +58,19 @@ function App() {
 
     const dropdowns = Object.entries(choices).map(([variable, options]) => {
       const dropdownOptions = options.map((option) => (
-        <option key={option} value={option}>
+        <MenuItem key={option} value={option}>
           {option}
-        </option>
+        </MenuItem>
       ));
 
       return (
-        <select
+        <Select
           key={variable}
           value={responses[index][variable]}
           onChange={(e) => handleSelect(index, variable, e.target.value)}
         >
           {dropdownOptions}
-        </select>
+        </Select>
       );
     });
 
@@ -85,7 +86,7 @@ function App() {
 
     return (
       <div>
-        <button onClick={() => removeResponse(index)}>Remove</button>
+        <Button variant="contained" onClick={() => removeResponse(index)}>Remove</Button>
         {renderedSentence}
       </div>
     );
@@ -101,9 +102,9 @@ function App() {
           index={index}
         />
       ))}
-      <button onClick={addResponse}>Add Response</button>
+      <Button variant="contained" onClick={addResponse}>Add Response</Button>
       <br />
-      <button onClick={handleSubmit}>Submit</button>
+      <Button variant="contained" onClick={handleSubmit}>Submit</Button>
     </div>
   );
 }
